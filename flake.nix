@@ -33,6 +33,8 @@
 
     emanote-template.url = "github:srid/emanote-template";
     emanote-template.flake = false;
+
+    haskell-template.url = "github:locallycompact/haskell-template";
   };
   outputs = inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
@@ -42,6 +44,7 @@
         inputs.flake-root.flakeModule
         inputs.treefmt-nix.flakeModule
         ./nix/flake-module.nix
+        (inputs.haskell-template.flakeModules.horizon-package-set)
       ];
 
       perSystem = { pkgs, lib, config, system, ... }: {
@@ -60,6 +63,7 @@
         haskellProjects.default = {
           projectFlakeName = "emanote";
           imports = [
+            inputs.self.haskellFlakeProjectModules.horizon-package-set
             inputs.ema.haskellFlakeProjectModules.output
           ];
           devShell.tools = hp: {
@@ -75,19 +79,45 @@
             fsnotify.source = "0.4.1.0"; # Not in nixpkgs, yet.
             ghcid.source = "0.8.8";
             heist-extra.source = inputs.heist-extra;
+
+            # Not in Horizon
+            monad-logger-extras.source = "0.1.1.1";
+            aeson-extra.source = "0.5.1.3";
+            aeson-optics.source = "1.2.1";
+            feed.source = "1.3.2.1";
+            xmlhtml.source = "0.2.5.4";
+            map-syntax.source = "0.3";
+            pandoc-lua-engine.source = "0.2.1";
+            hslua-repl.source = "0.1.1";
+            hslua-module-zip.source = "1.1.0";
+            isocline.source = "1.0.9";
+            doctest-driver-gen.source = "0.3.0.8";
+            heist.source = "1.1.1.2";
+            ixset-typed.source = "0.5.1.0";
+            safecopy.source = "0.10.4.2";
+            lens-action.source = "0.2.6";
+            pandoc-link-context.source = "1.4.1.0";
+            tagtree.source = "0.1.0.1";
+            tailwind.source = "0.3.0.0";
+            dir-traverse.source = "0.2.3.0";
+            dirstream.source = "1.1.0";
+            hinotify.source = "0.4.1";
           };
 
           settings = {
+            # Horizon stuff
+            doctest-driver-gen.check = false;
+            aeson-extra.check = false;
+
             # Haskell packages in nixpkgs are often broken in many ways; ergo,
             # it is our responsibility to fix them here.
             fsnotify.check = false;
             heist.broken = false;
+            heist.check = false;
             ixset-typed.broken = false;
             ixset-typed.jailbreak = true;
             pandoc-link-context.broken = false;
             pandoc-link-context.jailbreak = true;
-            tagtree.broken = false;
-            tagtree.jailbreak = true;
             tailwind.broken = false;
             tailwind.jailbreak = true;
             unionmount.check = !pkgs.stdenv.isDarwin; # garnix: Slow M1 builder 
@@ -98,7 +128,7 @@
               justStaticExecutables = true;
               removeReferencesTo = [
                 self.pandoc
-                self.pandoc_3_1_11
+                #self.pandoc_3_1_11
                 self.pandoc-types
                 self.warp
               ];
